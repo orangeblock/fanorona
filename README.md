@@ -1,0 +1,3 @@
+-Fanorona-
+Current stage of the game is more of a backup. Major fixing/refactoring has to be done.
+It is (barely) playable, better version coming up soon...
