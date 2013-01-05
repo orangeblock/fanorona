@@ -23,15 +23,21 @@ class Grid:
     """
     def __init__(self, board):
         self.grid = [[], [], [], [], []]
-        self.m = ()
+        self.m = []
         self.initGrid(board)
     
-    def move(self, x1, y1, x2, y2):
+    def __getitem__(self, index):
+        return self.grid[index]
+    
+    def __setitem__(self, key, value):
+        self.grid[key] = value
+        
+    def move(self, pos1, pos2):
         """
         Creates a move property used during update.
         x, y == row, column, not screen coordinates.
         """
-        self.m = ((x1, y1),(x2, y2))
+        self.m = [pos1, pos2]
     
     def update(self):
         """
@@ -39,24 +45,40 @@ class Grid:
         """
         if self.m:
             sx, sy, dx, dy = itertools.chain.from_iterable(self.m)
-            start = self.grid[sx][sy]
-            dest = self.grid[dx][dy]
+            start = self[sx][sy]
+            dest = self[dx][dy]
             d = utils.tsub((dx,dy),(sx,sy)) # calculate direction
             if start.rect.topleft == dest.rect.topleft:
                 # reached destination
-                self.grid[dx][dy] = start
-                self.grid[sx][sy] = dest
-                self.move = ()
+                self[dx][dy] = start
+                self[sx][sy] = dest
+                self.m = []
+                game.moving = False
             else:
                 # keep moving
                 start.rect.topleft = utils.tadd(start.rect.topleft, utils.tflip(d))
-                    
+    
+    def remove(self, positions):
+        for x,y in positions:
+            self[x][y].image = NULL_IMG
+                
     def draw(self, screen):
         """
         Draws all the pretty stones on the screen.
         """
         for sq in itertools.chain.from_iterable(self.grid):
             screen.blit(sq.image, sq.rect)
+    
+    def collision(self, mousepos):
+        """
+        Returns the position of the stone that collides
+        with the mouse, None otherwise.
+        """
+        for i in range(5):
+            for j in range(9):
+                if self[i][j].rect.collidepoint(mousepos):
+                    return (i,j)
+        return None
             
     def initGrid(self, board):
         """
@@ -68,13 +90,13 @@ class Grid:
             for j in range(9):
                 xadd = j*60
                 yadd = i*60
-                if board[i][j] and board[i][j].color == BLACK:
+                if board[i][j] == BLACK:
                     image = BLACK_IMG
-                elif board[i][j] and board[i][j].color == WHITE:
+                elif board[i][j] == WHITE:
                     image = WHITE_IMG
                 else:
                     image = NULL_IMG
-                self.grid[i].append(Piece(pygame.Rect((xs+xadd, ys+yadd), (60, 60)), image))
+                self[i].append(Piece(pygame.Rect((xs+xadd, ys+yadd), (60, 60)), image))
             
                                       
 # Resources used by this module
@@ -97,7 +119,7 @@ if __name__ == '__main__':
     while 1:
         for event in pygame.event.get():
             if event.type is pygame.QUIT:
-                g.move(2,1,2,2)
+                g.move((2,1),(2,2))
         screen.blit(background, (0,0))
         g.update()
         g.draw(screen)

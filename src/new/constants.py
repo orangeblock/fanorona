@@ -22,6 +22,10 @@ NDIRECTIONS = [U, D, R, L] # normal
 DDIRECTIONS = [UL, UR, DL, DR] # diagonal
 
 # capture types
-N = 0
+P = 0
 A = 1
 W = 2
+
+# grid status
+READY = 0
+BUSY = 1
