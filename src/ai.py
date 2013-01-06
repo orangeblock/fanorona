@@ -1,10 +1,11 @@
 import logic
 import game
+from constants import P
 
 def decide(board, color):
     """ Decides and returns next move based on current board. """
     board.children = successors(board, color)
-    decision = ab_prune(board, 3)
+    decision = ab_prune(board, 1)
     board.children = []
     return decision
 
@@ -16,23 +17,25 @@ def successors(board, color):
     for pos in board.colored(color):
         if pos not in board.moves:
             continue
-        
         start = pos
         chain = []
         tuples = []
         b = board.copy()
         
-        tuples = b.moves[pos]
+        tuples = board.moves[pos]
         while tuples:
             for move in tuples:
                 cb = b.copy()
-                chain.append(move)
                 newpos = move[0]
                 cb.remove(logic.captured(cb, pos, move))
                 cb.move(pos, newpos)
-                tups = logic.refine(cb, newpos, cb.adjacent(newpos), [((start), 0)] + chain)
+                if move[1] != P:
+                    tups = logic.refine(cb, newpos, cb.adjacent(newpos), [((start), 0)] + chain)
+                else:
+                    tups = []
+                chain.append(move)
                 stack.append((cb.copy(), newpos, chain[:], tups[:]))
-                chain = []
+                del chain[-1]
             b, pos, chain, tuples = stack[-1]
             del stack[-1]
             while not tuples:

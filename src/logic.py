@@ -1,5 +1,5 @@
 import utils
-from constants import P, A, W
+from constants import P, A, W, BLACK, WHITE
 
 def refine(board, pos, fpositions, chain = []):
     """ 
@@ -41,7 +41,7 @@ def refine(board, pos, fpositions, chain = []):
         
     return refined
 
-def clean(moves):
+def clean(b, moves):
     """
     Removes positions that don't have moves and
     cleans up unwanted paika moves (when capturing ones exist).
@@ -50,12 +50,25 @@ def clean(moves):
         if not moves[k]:
             del moves[k]
 
-    types = [move[1] for l in moves.itervalues() for move in l]
+    types = [m[1] for l in moves.itervalues() for m in l]
     if A in types or W in types:
         for k, v in moves.items():
             if P in [move[1] for move in v]:
                 del moves[k]
-
+                
+    colors = list(set([b[m[0]][m[1]] for m in moves]))
+    if len(colors) == 1:
+        # restore paika moves for other color
+        if colors[0] == BLACK:
+            col = WHITE
+        else:
+            col = BLACK
+        for pos in b.colored(col):
+            l = []
+            for i in b.adjacent(pos):
+                l.append((i,P))
+            moves[pos] = l
+    
 def captured(board, pos, move):
     """ Returns a list of captured stones according to the capture type."""
     fpos, captype = move

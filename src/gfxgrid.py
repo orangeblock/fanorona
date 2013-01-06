@@ -1,12 +1,10 @@
 import pygame
 import game
-import gfx
 import itertools
-import gfxtile
 import utils
-from gfxtile import Square
 from constants import *
 import board
+import copy
 
 class Piece:
     """
@@ -38,6 +36,7 @@ class Grid:
         x, y == row, column, not screen coordinates.
         """
         self.m = [pos1, pos2]
+        self.original = copy.deepcopy(self[pos1[0]][pos1[1]].rect)
     
     def update(self):
         """
@@ -50,10 +49,13 @@ class Grid:
             d = utils.tsub((dx,dy),(sx,sy)) # calculate direction
             if start.rect.topleft == dest.rect.topleft:
                 # reached destination
-                self[dx][dy] = start
-                self[sx][sy] = dest
+                self[sx][sy].rect = self.original
+                self[dx][dy].image = self[sx][sy].image
+                self[sx][sy].image = NULL_IMG
                 self.m = []
                 game.moving = False
+                if game.current == game.player:
+                    game.move()
             else:
                 # keep moving
                 start.rect.topleft = utils.tadd(start.rect.topleft, utils.tflip(d))
